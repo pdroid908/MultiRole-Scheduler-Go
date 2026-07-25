@@ -1,0 +1,36 @@
+# 1. Folder Temporer / Live Reload (seperti Air)
+tmp/
+*.tmp
+
+# 2. File Biner / Hasil Compile
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+# Nama file binary jika kamu compile app Go (sesuaikan jika ada)
+main
+playgo
+
+# 3. Environment & Rahasia (Sangat Penting!)
+.env
+.env.local
+*.pem
+
+# 4. IDE / Editor Configuration
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# 5. OS Generated Files
+.DS_Store
+Thumbs.db
+
+# 6. Database / Redis local dumps (jika ada simpan data lokal)
+*.db
+*.sqlite
+*.rdb

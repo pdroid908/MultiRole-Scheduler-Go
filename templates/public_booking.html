@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Booking Kalender - Enterprise</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      background: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between bg-slate-50">
+
+  <div>
+    <!-- Navbar Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+      <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 text-teal-400 flex items-center justify-center text-lg shadow-sm">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-slate-900 text-base md:text-lg leading-tight tracking-tight">Sistem Booking Kalender</h1>
+            <p class="text-xs text-slate-500 font-medium">Panel Jadwal Publik & Instansi</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="openBookingModal()" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-plus"></i>
+            <span>Ajukan Jadwal</span>
+          </button>
+          <a href="/login" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+            Login Owner
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      
+      <!-- Kalender Card -->
+      <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h2 id="month-year-label" class="font-black text-slate-900 text-xl md:text-2xl tracking-tight"></h2>
+            <p class="text-xs text-slate-500 font-semibold mt-0.5">Klik pada tanggal untuk melihat detail acara yang telah disetujui/pending</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="changeMonth(-1)" class="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-xs">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button onclick="changeMonth(1)" class="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-xs">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nama Hari -->
+        <div class="grid grid-cols-7 text-center font-bold text-xs text-slate-400 mb-3 uppercase tracking-wider">
+          <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+        </div>
+
+        <!-- Grid Tanggal -->
+        <div id="calendar-days" class="grid grid-cols-7 gap-2"></div>
+
+        <!-- Legend Status -->
+        <div class="flex items-center justify-center gap-6 mt-8 pt-5 border-t border-slate-100 text-xs font-bold text-slate-600">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <span>Disetujui / Confirmed</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+            <span>Menunggu / Pending</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL ENTERPRISE: DETAIL JADWAL ACARA -->
+  <div id="detail-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-5 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
+            <i class="fa-solid fa-calendar-day"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-white tracking-tight">Agenda & Jadwal Pertemuan</h3>
+            <p id="modal-date-subtitle" class="text-xs text-slate-400 font-medium">Tanggal: -</p>
+          </div>
+        </div>
+        <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (List Acara) -->
+      <div id="modal-slot-list" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1 bg-slate-50/50">
+        <!-- Acara dimuat via JS -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-white border-t border-slate-200/80 flex justify-between items-center shrink-0">
+        <span class="text-xs font-semibold text-slate-400">Pilih slot lain atau buat pengajuan baru.</span>
+        <button onclick="closeDetailModal()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          Tutup Panel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORM BOOKING -->
+  <div id="booking-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-paper-plane text-teal-600"></i> Form Pengajuan Jadwal
+        </h3>
+        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      </div>
+
+      <form id="form-booking" onsubmit="submitBooking(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Tanggal Pertemuan</label>
+          <input type="date" id="book-tanggal" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 outline-none transition">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Jam Mulai</label>
+            <input type="time" id="book-jam-mulai" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Jam Selesai</label>
+            <input type="time" id="book-jam-selesai" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 outline-none transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Keterangan / Deskripsi Acara</label>
+          <textarea id="book-keterangan" rows="3" placeholder="Tuliskan perihal rapat, peserta, dan tujuan secara jelas..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-teal-600 outline-none transition"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeBookingModal()" class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition">Batal</button>
+          <button type="submit" class="px-4 py-2.5 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition shadow-sm active:scale-95">Kirim Pengajuan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER UTAMA PERUSANAN / INSTANSI -->
+  <footer class="w-full bg-white border-t border-slate-200 py-8 px-4 mt-12 shrink-0">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-xs text-slate-600">
+      
+      <!-- Brand & Deskripsi -->
+      <div class="space-y-3">
+        <div class="flex items-center gap-2 text-slate-900 font-extrabold text-sm">
+          <div class="bg-slate-900 text-teal-400 p-1.5 rounded-lg text-xs">
+            <i class="fa-solid fa-building"></i>
+          </div>
+          <span>GoJadwal Enterprise</span>
+        </div>
+        <p class="text-slate-500 leading-relaxed font-medium">
+          Sistem Penjadwalan Pertemuan Terintegrasi. Memudahkan tata kelola agenda kantor, instansi, dan sekolah secara akurat.
+        </p>
+      </div>
+
+      <!-- Support / Contact -->
+      <div class="space-y-2">
+        <h4 class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+          <i class="fa-solid fa-headset text-teal-600"></i> Dukungan Bantuan
+        </h4>
+        <p class="text-slate-500 leading-relaxed">
+          Ada pertanyaan teknis atau butuh bantuan penyesuaian jadwal?
+        </p>
+        <a href="mailto:developer@artupstudio.com" class="inline-flex items-center gap-1.5 text-teal-600 font-bold hover:underline">
+          <i class="fa-solid fa-envelope"></i> developer@artupstudio.com
+        </a>
+      </div>
+
+      <!-- Informasi Tambahan -->
+      <div class="space-y-2">
+        <h4 class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-teal-600"></i> Ketentuan Akses
+        </h4>
+        <p class="text-slate-500 leading-relaxed">
+          Jadwal yang telah terverifikasi bersifat resmi. Pastikan hadir tepat waktu sesuai slot yang terdaftar.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="max-w-6xl mx-auto mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 font-medium gap-2">
+      <p>© 2026 GoJadwal Enterprise. Hak Cipta Dilindungi.</p>
+      <p>Powered by Artup Studio Engine</p>
+    </div>
+  </footer>
+
+  <script>
+    const pathSegments = window.location.pathname.split('/');
+    const ownerUserId = pathSegments[pathSegments.length - 1];
+
+    let currentDate = new Date();
+    let selectedDateStr = null;
+    let jadwalData = [];
+
+    document.addEventListener('DOMContentLoaded', fetchPublicJadwal);
+
+    async function fetchPublicJadwal() {
+      if (!ownerUserId || ownerUserId === 'p') return;
+
+      try {
+        const res = await fetch(`/api/public/jadwal/${ownerUserId}`);
+        const json = await res.json();
+        
+        if (json.status === 'success') {
+          jadwalData = json.data || [];
+          renderCalendar();
+        }
+      } catch (e) {
+        console.error("Gagal memuat jadwal:", e);
+      }
+    }
+
+    function renderCalendar() {
+      const monthYearLabel = document.getElementById('month-year-label');
+      const daysElem = document.getElementById('calendar-days');
+      daysElem.innerHTML = '';
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      monthYearLabel.innerText = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        daysElem.appendChild(document.createElement('div'));
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const daySchedules = jadwalData.filter(j => j.tanggal === dateStr);
+
+        const hasAccepted = daySchedules.some(j => j.is_confirmed);
+        const hasPending = daySchedules.some(j => !j.is_confirmed);
+
+        const btn = document.createElement('button');
+        btn.onclick = () => openDetailModal(dateStr);
+
+        btn.className = `h-20 p-2 rounded-2xl border border-slate-200/80 bg-white hover:border-teal-500 hover:shadow-md flex flex-col justify-between items-start transition group text-left relative overflow-hidden`;
+
+        let dotsHtml = '';
+        if (daySchedules.length > 0) {
+          dotsHtml = `<div class="flex flex-col gap-1 w-full mt-1">`;
+          if (hasAccepted) {
+            dotsHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded-md truncate"><i class="fa-solid fa-check text-[8px] mr-1"></i>${daySchedules.filter(j => j.is_confirmed).length} Disetujui</span>`;
+          }
+          if (hasPending) {
+            dotsHtml += `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded-md truncate"><i class="fa-solid fa-clock text-[8px] mr-1"></i>${daySchedules.filter(j => !j.is_confirmed).length} Pending</span>`;
+          }
+          dotsHtml += `</div>`;
+        }
+
+        btn.innerHTML = `
+          <span class="font-extrabold text-xs sm:text-sm text-slate-800 group-hover:text-teal-600">${day}</span>
+          ${dotsHtml}
+        `;
+
+        daysElem.appendChild(btn);
+      }
+    }
+
+    // MEMBUKA MODAL & MEMBERSIHKAN FORMAT KETERANGAN JADI ENTERPRISE AGENDA
+    function openDetailModal(dateStr) {
+      selectedDateStr = dateStr;
+      document.getElementById('modal-date-subtitle').innerText = `Tanggal: ${dateStr}`;
+      
+      const container = document.getElementById('modal-slot-list');
+      container.innerHTML = '';
+
+      const filtered = jadwalData.filter(j => j.tanggal === dateStr);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 p-6">
+            <i class="fa-regular fa-calendar-xmark text-3xl text-slate-300 mb-2"></i>
+            <p class="text-xs text-slate-600 font-bold">Tidak ada agenda pada tanggal ini.</p>
+            <button onclick="closeDetailModal(); openBookingModal('${dateStr}');" class="mt-3 px-4 py-2 bg-teal-50 text-teal-700 hover:bg-teal-100 font-bold text-xs rounded-xl transition border border-teal-200">
+              + Buat Pengajuan Tanggal Ini
+            </button>
+          </div>
+        `;
+      } else {
+        filtered.forEach((item, idx) => {
+          const isAccepted = item.is_confirmed;
+          const jamMulai = item.jam_mulai ? item.jam_mulai.slice(0, 5) : '';
+          const jamSelesai = item.jam_selesai ? item.jam_selesai.slice(0, 5) : '';
+
+          // Bersihkan Karakter Markdown bawaan (*, #, **)
+          let rawText = (item.keterangan || 'Pertemuan / Agenda Kerja')
+            .replace(/[#*]/g, '')
+            .trim();
+
+          const card = document.createElement('div');
+          card.className = "bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4";
+
+          card.innerHTML = `
+            <!-- Top Status Bar -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-slate-900 text-white text-xs font-black flex items-center justify-center">
+                  ${idx + 1}
+                </span>
+                <span class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <i class="fa-regular fa-clock text-teal-600"></i> ${jamMulai} - ${jamSelesai} WIB
+                </span>
+              </div>
+              <span class="text-[11px] font-extrabold px-3 py-1 rounded-full ${
+                isAccepted ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+              }">
+                ${isAccepted ? '✓ Disetujui' : '⏳ Menunggu Konfirmasi'}
+              </span>
+            </div>
+
+            <!-- Enterprise Formatted Box -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2">
+              <div class="flex items-center gap-2 text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                <i class="fa-solid fa-file-lines text-teal-600"></i> Rincian Agenda & Perihal
+              </div>
+              <p class="text-xs text-slate-800 font-semibold leading-relaxed whitespace-pre-wrap break-words">
+                ${escapeHTML(rawText)}
+              </p>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function openBookingModal(dateStr = '') {
+      if (dateStr) {
+        document.getElementById('book-tanggal').value = dateStr;
+      }
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+
+    function changeMonth(step) {
+      currentDate.setMonth(currentDate.getMonth() + step);
+      renderCalendar();
+    }
+
+    // Keamanan dari serangan XSS
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    async function submitBooking(e) {
+      e.preventDefault();
+      const tanggal = document.getElementById('book-tanggal').value;
+      const jam_mulai = document.getElementById('book-jam-mulai').value;
+      const jam_selesai = document.getElementById('book-jam-selesai').value;
+      const keterangan = document.getElementById('book-keterangan').value;
+
+      try {
+        const res = await fetch(`/api/public/booking/${ownerUserId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tanggal, jam_mulai, jam_selesai, keterangan })
+        });
+
+        if (res.ok) {
+          alert('Pengajuan jadwal berhasil dikirim!');
+          closeBookingModal();
+          fetchPublicJadwal();
+        } else {
+          const json = await res.json();
+          alert(json.error || 'Gagal mengirim jadwal');
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan koneksi');
+      }
+    }
+  </script>
+</body>
+</html>
