@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	
+
 	"log"
 	"net/http"
 	"os"
@@ -45,7 +45,6 @@ import (
 // 	}
 // }
 
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -73,33 +72,30 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
-    c.Writer.Header().Set("Access-Control-Allow-Origin", "https://goojadwal.pages.dev") // Sesuaikan port frontend React kamu
-    c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-    c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-    c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://goojadwal.pages.dev") // Sesuaikan port frontend React kamu
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
-    if c.Request.Method == "OPTIONS" {
-        c.AbortWithStatus(204)
-        return
-    }
-    c.Next()
-})
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
-	
-	
 
 	r.POST("/regis", auth.Register)
 	r.POST("/login", auth.Login)
 	r.POST("/tes", func(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{
-        "ok": "ok",
-    })
-})
-	
+		c.JSON(http.StatusOK, gin.H{
+			"ok": "ok",
+		})
+	})
+
 	r.GET("/api/public/jadwal/:id", user.MemberProfile)
 	r.GET("/api/booking/jadwal/:username", user.BookingProfile)
-
 
 	// Endpoint untuk booking dari publik/tamu tanpa login:
 	r.POST("/api/booking/:username", user.CreateBooking)
@@ -108,12 +104,10 @@ func main() {
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		
 
 		protected.GET("/download", func(c *gin.Context) {
 			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 		}, user.Profile)
-        
 
 		// Endpoint Logout
 		protected.POST("/logout", auth.Logout)
@@ -128,16 +122,20 @@ func main() {
 		protected.PUT("/user/change-username", user.UpdateUsername)
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	srv := &http.Server{
-    Addr: ":8080",
-    Handler: r,
+		Addr:    ":" + port, // Menggunakan port dinamis dari cloud atau fallback ke 8080
+		Handler: r,
 
-    ReadTimeout: 10 * time.Second,
-    ReadHeaderTimeout: 5 * time.Second,
-    WriteTimeout: 15 * time.Second,
-    IdleTimeout: 60 * time.Second,
-}
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -145,7 +143,7 @@ func main() {
 		}
 	}()
 
-	log.Print("server jalan di 8080")
+	log.Printf("server jalan di port %s", port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
