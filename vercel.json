@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/main.go" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
