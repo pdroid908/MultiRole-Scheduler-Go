@@ -19,7 +19,7 @@ func Connect() (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gagal buat config %v", err)
 	}
-	config.MaxConns = 100
+	
 	config.MinConns = 3
 	config.MaxConnLifetime = 30 * time.Minute
 	config.HealthCheckPeriod = 1 * time.Minute

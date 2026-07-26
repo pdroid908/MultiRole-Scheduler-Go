@@ -54,7 +54,7 @@ func (d *DB) Profile(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"err": "invalid id ya"})
 		return
 	}
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
 	defer cancel()
 
 	var username string
