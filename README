@@ -1,45 +1,352 @@
-# 🚀 MultiRole Scheduler Backend
+# 📅 MultiRole Scheduler Go
 
-<div align="center">
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go">
+  <img src="https://img.shields.io/badge/Gin-Web_Framework-00ADD8?style=for-the-badge">
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql">
+  <img src="https://img.shields.io/badge/JWT-Authentication-black?style=for-the-badge">
+  <img src="https://img.shields.io/badge/RBAC-3_Roles-success?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge">
+</p>
 
-  <img src="https://img.shields.io/badge/Golang-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" />
-  <img src="https://img.shields.io/badge/Gin-000000?style=for-the-badge&logo=gin&logoColor=white" alt="Gin" />
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white" alt="JWT" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-
-  <p><b>High-Performance Backend Engine for Multi-Role Online Scheduling & Booking System</b></p>
-</div>
-
----
-
-## 📌 Tentang Proyek
-**MultiRole Scheduler** adalah sistem backend modern yang dirancang untuk menangani manajemen jadwal dan pemesanan (*booking*) online secara real-time. Dibangun menggunakan **Golang** untuk memaksimalkan kecepatan pemrosesan (*throughput*) serta efisiensi memori yang sangat rendah. Proyek ini mendukung arsitektur multi-peran (Admin & Member) dengan sistem keamanan berlapis menggunakan JWT dan optimasi *in-memory caching*.
+<p align="center">
+An online scheduling and booking platform built with Go (Golang).<br>
+Designed with Role-Based Access Control (RBAC) and schedule conflict prevention.
+</p>
 
 ---
 
-## ✨ Fitur Utama
-* **🔐 Secure Authentication:** Menggunakan implementasi *JSON Web Tokens (JWT)* dan enkripsi password berstandar industri dengan `bcrypt`.
-* **⚡ Hybrid Performance Strategy (Caching):** Mengintegrasikan sistem *Cache-Aside* (`patrickmn/go-cache`) untuk meminimalisir beban database pada akses publik berfrekuensi tinggi.
-* **📅 Multi-Role Schedule Management:** 
-  * **Admin:** Memiliki kontrol penuh untuk membuat, memperbarui, dan mempublikasikan jadwal ketersediaan.
-  * **Member/Klien:** Melakukan *booking* jadwal secara instan melalui tautan publik yang bersih dan responsif.
-* **🛡️ Robust Error Handling & Context Timeout:** Menerapkan manajemen *context* ketat di setiap query database untuk mencegah kebocoran koneksi dan *hanging request*.
+# 📖 Overview
+
+MultiRole Scheduler Go is a web-based scheduling platform developed using **Go (Golang)**.
+
+The application allows customers to book available schedules online while ensuring that the same schedule cannot be booked by multiple users at the same time.
+
+The system applies **Role-Based Access Control (RBAC)** with three user roles to provide different permissions for administrators, members, and customers.
+
+This project demonstrates backend development concepts including authentication, authorization, RESTful APIs, database operations, business validation, and secure booking management.
 
 ---
 
-## 🛠️ Tech Stack
-* **Language:** [Go (Golang)](https://golang.org/)
-* **Web Framework:** [Gin Web Framework](https://github.com/gin-gonic/gin)
-* **Database Driver:** [pgx/v5 (PostgreSQL)](https://github.com/jackc/pgx)
-* **Caching:** In-memory caching (`github.com/patrickmn/go-cache`)
-* **Authentication:** `golang-jwt/jwt/v5` & `golang.org/x/crypto/bcrypt`
+# ✨ Features
+
+## 👨‍💼 Admin
+
+- Secure login
+- Dashboard overview
+- Manage members
+- Manage schedules
+- View all bookings
+- Update booking status
+- Delete schedules
+- Monitor booking activity
 
 ---
 
-## ⚙️ Struktur Arsitektur Singkat
-```text
-├── models/          # Struktur data entitas (Jadwal, Pengguna, dll)
-├── user/            # Business logic untuk profil, autentikasi, & manajemen cache
-├── auth/            # Middleware keamanan & validasi token JWT
-└── main.go          # Entry point & konfigurasi routing utama server
+## 👤 Member
+
+Members are service providers.
+
+Features:
+
+- Login
+- Manage personal schedules
+- View booking requests
+- Accept bookings
+- Reject bookings
+- Update availability
+- Booking history
+
+---
+
+## 🙋 Customer
+
+Customers can:
+
+- Browse available schedules
+- Book online
+- View booking status
+- Receive booking confirmation
+- Track reservation history
+
+---
+
+# 🚫 Schedule Conflict Prevention
+
+One of the core features of this project is preventing double booking.
+
+Before a booking is saved, the backend validates whether the selected schedule is still available.
+
+If another customer has already reserved the same schedule, the request will be rejected.
+
+This validation guarantees data consistency even when multiple users access the application simultaneously.
+
+---
+
+# 🔐 Authentication & Authorization
+
+The application implements secure authentication and authorization.
+
+Features include:
+
+- JWT Authentication
+- Protected API Routes
+- Role-Based Access Control (RBAC)
+- Login Validation
+- Permission Checking
+- Session Authentication
+
+---
+
+# 👥 User Roles
+
+| Role | Permission |
+|------|------------|
+| Admin | Full system management |
+| Member | Manage schedules and bookings |
+| Customer | Book available schedules |
+
+---
+
+# ⚙ Tech Stack
+
+## Backend
+
+- Go (Golang)
+- Gin Framework
+
+## Database
+
+- PostgreSQL
+
+## Authentication
+
+- JWT
+
+## API
+
+- RESTful API
+
+## Frontend
+
+- HTML
+- CSS
+- JavaScript
+
+---
+
+# 🏗 Architecture
+
+```
+            Client
+               │
+               ▼
+        Gin HTTP Server
+               │
+        Authentication
+        Authorization
+               │
+          REST API
+               │
+        Business Logic
+               │
+      Repository Layer
+               │
+         PostgreSQL
+```
+
+---
+
+# 📅 Booking Workflow
+
+```
+Customer
+
+↓
+
+View Available Schedule
+
+↓
+
+Choose Schedule
+
+↓
+
+Send Booking Request
+
+↓
+
+Backend Validation
+
+↓
+
+Schedule Available?
+
+├── YES
+│
+├── Save Booking
+│
+└── Booking Success
+
+└── NO
+
+Return Conflict Response
+```
+
+---
+
+# 🚀 Project Highlights
+
+✔ RESTful API
+
+✔ JWT Authentication
+
+✔ Role-Based Access Control
+
+✔ Schedule Conflict Prevention
+
+✔ Booking Management
+
+✔ Member Schedule Management
+
+✔ Secure Backend Validation
+
+✔ PostgreSQL Integration
+
+✔ Production-Oriented Backend Structure
+
+---
+
+# 🔒 Security
+
+Implemented security practices include:
+
+- JWT Authentication
+- Protected Routes
+- Server-side Validation
+- Booking Conflict Validation
+- Authorization Middleware
+- Input Validation
+
+---
+
+# 💡 Business Case
+
+This application can be adapted for:
+
+- Clinic Appointment System
+- Barbershop Reservation
+- Salon Booking
+- Consultant Scheduling
+- Sports Facility Booking
+- Meeting Room Reservation
+- Tutor Scheduling
+- Event Reservation
+
+---
+
+# 📈 Future Improvements
+
+- Email Notifications
+- Google Calendar Integration
+- Redis Cache
+- Docker Deployment
+- Unit Testing
+- CI/CD Pipeline
+- Admin Analytics Dashboard
+- Booking Reminder
+- Payment Gateway
+- Mobile Application
+
+---
+
+# 📂 Example Folder Structure
+
+```
+.
+├── database/
+├── middleware/
+├── models/
+├── repository/
+├── routes/
+├── handlers/
+├── services/
+├── utils/
+├── frontend/
+├── main.go
+└── go.mod
+```
+
+---
+
+# 📸 Screenshots
+
+### Login
+
+> Add screenshot here
+
+---
+
+### Admin Dashboard
+
+> Add screenshot here
+
+---
+
+### Member Dashboard
+
+> Add screenshot here
+
+---
+
+### Booking Page
+
+> Add screenshot here
+
+---
+
+# 🎯 Why This Project?
+
+Managing schedules sounds simple until multiple users attempt to reserve the same time slot.
+
+This project focuses on solving that challenge by implementing backend validation that prevents schedule conflicts while maintaining a clean role-based permission system.
+
+It reflects real-world backend development practices commonly found in enterprise scheduling systems.
+
+---
+
+# 👨‍💻 Developer
+
+**Putra Nur Rohman**
+
+Backend Developer (Go/Golang)
+
+### Skills
+
+- Go (Golang)
+- Gin Framework
+- PostgreSQL
+- REST API
+- JWT Authentication
+- Backend Architecture
+- SQL
+- Git
+- Docker (Learning)
+
+GitHub
+
+https://github.com/pdroid908
+
+---
+
+# ⭐ Repository
+
+If you found this project useful, consider giving it a ⭐.
+
+It helps others discover the project and motivates future development.
+
+---
+
+<p align="center">
+Made with ❤️ using Go (Golang)
+</p>
