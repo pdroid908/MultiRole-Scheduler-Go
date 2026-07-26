@@ -19,30 +19,30 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-func SecurityHeaders() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-		c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-		c.Header("X-XSS-Protection", "0")
+// func SecurityHeaders() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		c.Header("X-Frame-Options", "DENY")
+// 		c.Header("X-Content-Type-Options", "nosniff")
+// 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+// 		c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+// 		c.Header("X-XSS-Protection", "0")
 
-		// PERBAIKAN CSP: Diizinkan CDN Tailwind, FontAwesome, dan Google Fonts agar UI tidak hancur
-		cspPolicy := "default-src 'self'; " +
-			"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; " +
-			"style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
-			"font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
-			"img-src 'self' data: https:; " +
-			"connect-src 'self'; " +
-			"object-src 'none'; " +
-			"frame-ancestors 'none'; " +
-			"base-uri 'self'; " +
-			"form-action 'self'"
+// 		// PERBAIKAN CSP: Diizinkan CDN Tailwind, FontAwesome, dan Google Fonts agar UI tidak hancur
+// 		cspPolicy := "default-src 'self'; " +
+// 			"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; " +
+// 			"style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+// 			"font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
+// 			"img-src 'self' data: https:; " +
+// 			"connect-src 'self'; " +
+// 			"object-src 'none'; " +
+// 			"frame-ancestors 'none'; " +
+// 			"base-uri 'self'; " +
+// 			"form-action 'self'"
 
-		c.Header("Content-Security-Policy", cspPolicy)
-		c.Next()
-	}
-}
+// 		c.Header("Content-Security-Policy", cspPolicy)
+// 		c.Next()
+// 	}
+// }
 
 func main() {
 	err := godotenv.Load()
@@ -70,31 +70,30 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
+	r.Use(func(c *gin.Context) {
+    c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // Sesuaikan port frontend React kamu
+    c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+    c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+    c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+    if c.Request.Method == "OPTIONS" {
+        c.AbortWithStatus(204)
+        return
+    }
+    c.Next()
+})
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
-	r.Use(SecurityHeaders())
-
-	r.LoadHTMLGlob("templates/*")
-	r.Static("/static", "./static")
-
-	r.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", nil)
-	})
-	r.GET("/register", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "register.html", nil)
-	})
+	
+	
 
 	r.POST("/regis", auth.Register)
 	r.POST("/login", auth.Login)
 	
-	r.GET("/p/:id", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
-	})
+	
 	r.GET("/api/public/jadwal/:id", user.MemberProfile)
 	r.GET("/api/booking/jadwal/:username", user.BookingProfile)
-	r.GET("/booking/:username", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "booking.html", nil)
-	})
+
 
 	// Endpoint untuk booking dari publik/tamu tanpa login:
 	r.POST("/api/booking/:username", user.CreateBooking)
@@ -103,23 +102,12 @@ func main() {
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/admin", func(c *gin.Context) {
-			// Cegah browser caching halaman admin setelah logout
-			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-			c.Header("Pragma", "no-cache")
-			c.Header("Expires", "0")
-			c.HTML(http.StatusOK, "admin.html", nil)
-		})
+		
 
 		protected.GET("/download", func(c *gin.Context) {
-        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-        c.HTML(http.StatusOK, "download.html", nil)
-    })
-
-		protected.GET("/settings", func(c *gin.Context) {
 			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-			c.HTML(http.StatusOK, "settings.html", nil)
-		})
+		}, user.Profile)
+        
 
 		// Endpoint Logout
 		protected.POST("/logout", auth.Logout)
@@ -134,11 +122,6 @@ func main() {
 		protected.PUT("/user/change-username", user.UpdateUsername)
 	}
 
-	// --- 3. RUTE DINAMIS (/:username) DITARUH PALING BAWAH ---
-	// Agar tidak "mencuri" rute seperti /login, /register, /profile, dll.
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "halamanutama.html", nil)
-	})
 
 	srv := &http.Server{
     Addr: ":8080",

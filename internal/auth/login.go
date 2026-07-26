@@ -82,7 +82,7 @@ func (d*Data) Login(c *gin.Context){
 		int(8*time.Hour/time.Second),
 		"/",
 		"",
-		true,
+		false,
 		true,
 	)
 
