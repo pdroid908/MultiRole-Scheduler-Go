@@ -19,15 +19,12 @@ import (
 	"play/user"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+
 	"github.com/patrickmn/go-cache"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("gagal load env")
-	}
+	
 
 	pool, err := database.Connect()
 	if err != nil {
