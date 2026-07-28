@@ -15,10 +15,8 @@ var (
 )
 
 func Connect() error {
-	// Ambil URL Redis dari environment variable Railway
-	redisURL := os.Getenv("REDIS_URL") // Sesuaikan nama variabel jika di Railway berbeda (misal: REDIS_PUBLIC_URL / REDIS_PRIVATE_URL)
 	
-	// Jika menggunakan format URL dari Railway (contoh: redis://default:password@host:port)
+	redisURL := os.Getenv("REDIS_URL") 
 	opt, err := goredis.ParseURL(redisURL)
 	if err != nil {
 		return err
