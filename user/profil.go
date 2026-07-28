@@ -141,9 +141,6 @@ func (d *DB) Profile(c *gin.Context) {
 // -------------------------------------------------------------
 // 2. MEMBER PROFILE (STRICTLY BACA CACHE ONLY - NO QUERY DB)
 // -------------------------------------------------------------
-// -------------------------------------------------------------
-// 2. MEMBER PROFILE (CACHE-ASIDE: BACA CACHE, JIKA TIDAK ADA AMBIL DB)
-// -------------------------------------------------------------
 func (d *DB) MemberProfile(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
