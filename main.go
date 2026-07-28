@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"github.com/gin-contrib/cors"
 	"syscall"
 	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"play/database"
 	"play/internal/auth"
@@ -21,31 +22,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/patrickmn/go-cache"
 )
-
-// func SecurityHeaders() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		c.Header("X-Frame-Options", "DENY")
-// 		c.Header("X-Content-Type-Options", "nosniff")
-// 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-// 		c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-// 		c.Header("X-XSS-Protection", "0")
-
-// 		// PERBAIKAN CSP: Diizinkan CDN Tailwind, FontAwesome, dan Google Fonts agar UI tidak hancur
-// 		cspPolicy := "default-src 'self'; " +
-// 			"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; " +
-// 			"style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
-// 			"font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
-// 			"img-src 'self' data: https:; " +
-// 			"connect-src 'self'; " +
-// 			"object-src 'none'; " +
-// 			"frame-ancestors 'none'; " +
-// 			"base-uri 'self'; " +
-// 			"form-action 'self'"
-
-// 		c.Header("Content-Security-Policy", cspPolicy)
-// 		c.Next()
-// 	}
-// }
 
 func main() {
 	err := godotenv.Load()
@@ -70,7 +46,11 @@ func main() {
 		Database: pool,
 		Cache:    c,
 	}
-	redis.Connect()
+	err = redis.Connect()
+	if err != nil {
+		log.Fatalf("gagal konek ke Redis: %v", err)
+	}
+	log.Println("Berhasil terhubung ke Redis!")
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -85,6 +65,14 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	r.Static("/assets", "./dist/assets")
+	r.StaticFile("/favicon.svg", "./dist/favicon.svg")
+	r.StaticFile("/icons.svg", "./dist/icons.svg")
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
 
 	r.POST("/regis", auth.Register)
 	r.POST("/login", auth.Login)
