@@ -76,15 +76,15 @@ func (d*Data) Login(c *gin.Context){
 		return
 	}
 
-	c.SetCookie(
-		"token",
-		tokens,
-		int(8*time.Hour/time.Second),
-		"/",
-		"",
-		false,
-		true,
-	)
+	http.SetCookie(c.Writer, &http.Cookie{
+    Name:     "token",
+    Value:    tokens,
+    Path:     "/",
+    MaxAge:   60 * 60 * 16,
+    HttpOnly: true,
+    Secure:   true,
+    SameSite: http.SameSiteNoneMode,
+})
 
 	c.JSON(http.StatusOK,gin.H{"message":"sukses login"})
 

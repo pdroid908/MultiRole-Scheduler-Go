@@ -13,6 +13,7 @@ import (
 	"play/database"
 	"play/internal/auth"
 	"play/middleware"
+	"play/redis"
 	"play/user"
 
 	"github.com/gin-gonic/gin"
@@ -68,6 +69,7 @@ func main() {
 		Database: pool,
 		Cache:    c,
 	}
+	redis.Connect()
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
