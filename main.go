@@ -69,6 +69,9 @@ func main() {
 	r.Static("/assets", "./dist/assets")
 	r.StaticFile("/favicon.svg", "./dist/favicon.svg")
 	r.StaticFile("/icons.svg", "./dist/icons.svg")
+	r.GET("/", func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
 
 	r.NoRoute(func(c *gin.Context) {
 		c.File("./dist/index.html")
