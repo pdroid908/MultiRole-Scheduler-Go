@@ -2,15 +2,16 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
-	"time"
+	
 	"os"
+	"time"
 
-	goredis "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9"
+	
 )
 
 var (
-	Client *goredis.Client
+	Client *redis.Client
 	Ctx    = context.Background()
 )
 
@@ -19,12 +20,12 @@ func Connect() error {
 	redisURL := os.Getenv("REDIS_URL") // Sesuaikan nama variabel jika di Railway berbeda (misal: REDIS_PUBLIC_URL / REDIS_PRIVATE_URL)
 	
 	// Jika menggunakan format URL dari Railway (contoh: redis://default:password@host:port)
-	opt, err := goredis.ParseURL(redisURL)
+	opt, err := redis.ParseURL(redisURL)
 	if err != nil {
 		return err
 	}
 
-	Client = goredis.NewClient(opt)
+	Client = redis.NewClient(opt)
 
 	_, err = Client.Ping(Ctx).Result()
 	return err
@@ -48,24 +49,20 @@ func RateLimit(key string) (bool, error) {
 
 // SetC digunakan untuk menyimpan data ke Redis Cache dengan masa kedaluwarsa (duration)
 func Set(key string, value interface{}, duration time.Duration) error {
-	// Ubah data struct/interface menjadi bentuk JSON string/bytes agar bisa disimpan di Redis
-	jsonBytes, err := json.Marshal(value)
-	if err != nil {
-		return err
-	}
-
-	// Simpan menggunakan Client global yang sudah terhubung
-	err = Client.Set(Ctx, key, jsonBytes, duration).Err()
-	return err
+	
+	_= Client.Set(Ctx,key,value,duration ).Err()
+	
+	return nil
 }
 
-// GetC opsional tambahan: Untuk mengambil data cache kembali dari Redis
-func Get(key string, dest interface{}) error {
-	val, err := Client.Get(Ctx, key).Bytes()
-	if err != nil {
-		return err // Bisa dicek apakah redis.Nil jika cache tidak ditemukan
-	}
+func Get(key string)string{
+	a,_:=Client.Get(Ctx,key).Result()
 
-	// Unmarshal kembali ke bentuk struct aslinya
-	return json.Unmarshal(val, dest)
+	return a
+}
+
+func Del(key string)error{
+	_= Client.Del(Ctx,key).Err()
+
+	return nil
 }
