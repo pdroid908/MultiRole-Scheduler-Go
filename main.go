@@ -96,7 +96,7 @@ func main() {
 	protected.Use(middleware.AuthMiddleware())
 	{
 
-		protected.GET("/download", func(c *gin.Context) {
+		protected.GET("/api/download", func(c *gin.Context) {
 			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 		}, user.Profile)
 
