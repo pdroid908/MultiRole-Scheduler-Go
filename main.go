@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"log"
 	"net/http"
@@ -9,9 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	"github.com/gin-contrib/cors"
-
 	"play/database"
 	"play/internal/auth"
 	"play/middleware"
@@ -19,13 +18,17 @@ import (
 	"play/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"github.com/patrickmn/go-cache"
 )
 
 func main() {
+	err:= godotenv.Load()
+	if err!=nil{
+		fmt.Print("gagal load env tetap jalan")
+	}
 	
-
 	pool, err := database.Connect()
 	if err != nil {
 		log.Fatalf("gagal konek ke database %v", err)
@@ -45,7 +48,7 @@ func main() {
 	}
 	err = redis.Connect()
 	if err != nil {
-		log.Fatalf("gagal konek ke Redis: %v", err)
+		fmt.Print("gagal konek ke Redis")
 	}
 	log.Println("Berhasil terhubung ke Redis!")
 
@@ -55,7 +58,7 @@ func main() {
 	r.Use(gin.Logger())
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://goojadwal.pages.dev"}, // Sesuaikan dengan frontend production kamu
+		AllowOrigins:     []string{"https://goojadwal.pages.dev","http://localhost:5173"}, // Sesuaikan dengan frontend production kamu
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "Cache-Control"},
 		ExposeHeaders:    []string{"Content-Length"},

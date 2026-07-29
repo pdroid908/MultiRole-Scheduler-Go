@@ -20,10 +20,6 @@ func Connect() (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("gagal buat config %v", err)
 	}
 	
-	config.MinConns = 3
-	config.MaxConnLifetime = 30 * time.Minute
-	config.HealthCheckPeriod = 1 * time.Minute
-	config.MaxConnIdleTime = 15 * time.Minute
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

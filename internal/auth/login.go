@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-
+	
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -82,7 +82,7 @@ func (d*Data) Login(c *gin.Context){
 		int(8*time.Hour/time.Second),
 		"/",
 		"",
-		true,
+		false,
 		true,
 	)
 
