@@ -4,13 +4,15 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"play/redis"
+
 	// "play/redis"
 
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -49,16 +51,16 @@ func (d*Data) Login(c *gin.Context){
 		return
 	}
 
-	// limit:= "Login_Limit:"+ c.ClientIP()
-	// boleh, err:= redis.RateLimit(limit)
-	// if err!=nil{
-	// 	c.JSON(http.StatusInternalServerError,gin.H{"err":"redis err"})
-	// 	return
-	// }
-	// if !boleh{
-	// 	c.JSON(http.StatusTooManyRequests,gin.H{"err":"tunggu 5 menit"})
-	// 	return
-	// }
+	limit:= "Login_Limit:"+ c.ClientIP()
+	boleh, err:= redis.RateLimit(limit)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"err":"redis err"})
+		return
+	}
+	if !boleh{
+		c.JSON(http.StatusTooManyRequests,gin.H{"err":"tunggu 5 menit"})
+		return
+	}
 
 	expJwt:= time.Now().Add(8*time.Hour).Unix()
 

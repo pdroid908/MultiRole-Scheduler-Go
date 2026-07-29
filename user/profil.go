@@ -4,30 +4,20 @@ import (
 	"context"
 	"net/http"
 	"play/models"
+	"play/redis"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/patrickmn/go-cache"
 )
 
 type DB struct {
 	Database *pgxpool.Pool
-	Cache    *cache.Cache
-}
-
-func NewDBService(pool *pgxpool.Pool) *DB {
-	// Cache disimpan default 12 jam, cleanup item mati tiap 10 menit
-	c := cache.New(12*time.Hour, 10*time.Minute)
-	return &DB{
-		Database: pool,
-		Cache:    c,
-	}
 }
 
 func (d *DB) InvalidateUserCache(userID string) {
-	d.Cache.Delete("public_schedule:" + userID)
-	d.Cache.Delete("admin_profile:" + userID)
+	redis.Del("member_schedule:" + userID)
+	redis.Del("admin_profile:" + userID)
 
 	// Hapus juga cache booking berdasarkan username
 	var username string
@@ -36,7 +26,7 @@ func (d *DB) InvalidateUserCache(userID string) {
 
 	err := d.Database.QueryRow(ctx, "SELECT username FROM pengguna WHERE id = $1", userID).Scan(&username)
 	if err == nil && username != "" {
-		d.Cache.Delete("booking_schedule:" + username)
+		redis.Del("booking_schedule:" + username)
 	}
 }
 
@@ -57,7 +47,19 @@ func (d *DB) Profile(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
 	defer cancel()
 
+
+	var a = "admin_profile:"+ ID
 	var username string
+
+	if data,err:= redis.Get(a);err==nil{
+		c.JSON(http.StatusOK, gin.H{
+		"status":   "success",
+		"id":       ID,
+		"data":     data,
+	})
+		return
+	}
+	
 	cari := `select username from pengguna where id=$1`
 	err := d.Database.QueryRow(ctx, cari, ID).Scan(&username)
 	if err != nil {
@@ -126,8 +128,9 @@ func (d *DB) Profile(c *gin.Context) {
 	// -------------------------------------------------------------
 	// LANGSUNG MASAK & WRITE KEDUA CACHE SAAT ADMIN AKSES PROFIL!
 	// -------------------------------------------------------------
-	d.Cache.Set("public_schedule:"+ID, daftarJadwal, cache.NoExpiration)
-	d.Cache.Set("booking_schedule:"+username, daftarBooking, cache.NoExpiration)
+	redis.Set("member_schedule:"+ID, daftarJadwal, 8*time.Hour)
+	redis.Set("booking_schedule:"+username, daftarBooking, 8*time.Hour)
+	redis.Set(a, daftarJadwal,8*time.Hour)
 
 	// Kirim data ke Admin
 	c.JSON(http.StatusOK, gin.H{
@@ -148,14 +151,20 @@ func (d *DB) MemberProfile(c *gin.Context) {
 		return
 	}
 
-	cacheKey := "public_schedule:" + userID
+	cacheKey := "member_schedule:" + userID
 
 	// 1. Cek dulu ke cache Go
-	if cachedData, found := d.Cache.Get(cacheKey); found {
-		if jadwal, ok := cachedData.([]models.Jadwal); ok {
-			c.JSON(http.StatusOK, jadwal)
+	if cachedData, err := redis.Get(cacheKey); err==nil {
+			c.Data(http.StatusOK, "application/json", []byte(cachedData)) 
 			return
 		}
+	
+	var nama string
+	cari:= `select username from pengguna where id=$1`
+	err:= d.Database.QueryRow(c,cari,userID).Scan(&nama)
+	if err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{"err":"invalid url"})
+		return
 	}
 
 	// 2. JIKA CACHE KOSONG/EXPIRED (Atau di-invalidasi admin), AMBIL DARI DATABASE
@@ -208,11 +217,16 @@ func (d *DB) MemberProfile(c *gin.Context) {
 		return
 	}
 
+	responsePayload := gin.H{
+		"username": nama,
+		"data":     daftarJadwal,
+	}
+
 	// 3. SIMPAN KE CACHE OTOMATIS (Cache-Aside)
-	d.Cache.Set(cacheKey, daftarJadwal, cache.NoExpiration)
+	redis.Set(cacheKey, responsePayload, 8*time.Hour)
 
 	// 4. Kirim data ke client
-	c.JSON(http.StatusOK, daftarJadwal)
+	c.JSON(http.StatusOK, responsePayload)
 }
 
 type BookingJadwal struct {
@@ -224,9 +238,6 @@ type BookingJadwal struct {
 	IsConfirmed bool   `json:"is_confirmed"`
 }
 
-// -------------------------------------------------------------
-// 3. BOOKING PROFILE MEMBER (STRICTLY BACA CACHE ONLY - NO QUERY DB)
-// -------------------------------------------------------------
 // -------------------------------------------------------------
 // 3. BOOKING PROFILE MEMBER (CACHE-ASIDE: BACA CACHE, JIKA TIDAK ADA AMBIL DB)
 // -------------------------------------------------------------
@@ -240,11 +251,9 @@ func (d *DB) BookingProfile(c *gin.Context) {
 	cacheKey := "booking_schedule:" + username
 
 	// 1. Cek dulu ke cache Go
-	if cachedData, found := d.Cache.Get(cacheKey); found {
-		if jadwal, ok := cachedData.([]BookingJadwal); ok {
-			c.JSON(http.StatusOK, jadwal)
-			return
-		}
+	if cachedData, err := redis.Get(cacheKey); err==nil {
+			c.JSON(http.StatusOK, cachedData)
+			return	
 	}
 
 	// 2. JIKA CACHE KOSONG/EXPIRED, AMBIL DARI DATABASE (DB QUERY)
@@ -299,7 +308,7 @@ func (d *DB) BookingProfile(c *gin.Context) {
 	}
 
 	// 3. SIMPAN KE CACHE OTOMATIS (Agar kedepannya tidak query DB lagi)
-	d.Cache.Set(cacheKey, daftarBooking, cache.NoExpiration)
+	redis.Set(cacheKey, daftarBooking, 5*time.Hour)
 
 	// 4. Kirim hasil ke client
 	c.JSON(http.StatusOK, daftarBooking)

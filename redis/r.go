@@ -2,12 +2,13 @@ package redis
 
 import (
 	"context"
-	
+	"encoding/json"
+	"fmt"
+
 	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	
 )
 
 var (
@@ -16,10 +17,9 @@ var (
 )
 
 func Connect() error {
-	// Ambil URL Redis dari environment variable Railway
-	redisURL := os.Getenv("REDIS_URL") // Sesuaikan nama variabel jika di Railway berbeda (misal: REDIS_PUBLIC_URL / REDIS_PRIVATE_URL)
 	
-	// Jika menggunakan format URL dari Railway (contoh: redis://default:password@host:port)
+	redisURL := os.Getenv("REDIS_URL") 
+	
 	opt, err := redis.ParseURL(redisURL)
 	if err != nil {
 		return err
@@ -32,6 +32,11 @@ func Connect() error {
 }
 
 func RateLimit(key string) (bool, error) {
+
+	if Client == nil {
+        fmt.Println("Warning: Redis Client belum terkoneksi, RateLimit dilewati.")
+        return true, nil // Loloskan request jika redis mati agar tidak crash
+    }
 	count, err := Client.Incr(Ctx, key).Result()
 	if err != nil {
 		return false, err
@@ -49,20 +54,45 @@ func RateLimit(key string) (bool, error) {
 
 // SetC digunakan untuk menyimpan data ke Redis Cache dengan masa kedaluwarsa (duration)
 func Set(key string, value interface{}, duration time.Duration) error {
+
+	if Client == nil {
+		fmt.Println("Warning: Redis Client belum terkoneksi, Set dilewati.")
+		return nil
+	}
 	
-	_= Client.Set(Ctx,key,value,duration ).Err()
-	
+	j,err:= json.Marshal(value)
+	if err!=nil{
+		return err
+	}
+	err= Client.Set(Ctx,key,j,duration ).Err()
+	if err != nil {
+		// Cukup cetak error atau log, jangan di-return ke fungsi utama
+		fmt.Println("Warning: Gagal menyimpan ke Redis:", err)
+	}
 	return nil
 }
 
-func Get(key string)string{
-	a,_:=Client.Get(Ctx,key).Result()
+func Get(key string)(string,error){
+	if Client == nil {
+		return "", fmt.Errorf("redis client is nil")
+	}
 
-	return a
+	a,err :=Client.Get(Ctx,key).Result()
+	if err!=nil{
+		return "", err
+	}
+
+	return a,nil
 }
 
 func Del(key string)error{
-	_= Client.Del(Ctx,key).Err()
-
+	if Client == nil {
+		fmt.Println("Warning: Redis Client belum terkoneksi, Set dilewati.")
+		return nil
+	}
+	err:= Client.Del(Ctx,key).Err()
+	if err != nil {
+		fmt.Println("Warning: Gagal menghapus dari Redis:", err)
+	}
 	return nil
 }

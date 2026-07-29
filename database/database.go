@@ -20,7 +20,6 @@ func Connect() (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("gagal buat config %v", err)
 	}
 	
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

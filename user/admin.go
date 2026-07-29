@@ -209,7 +209,7 @@ func (d *DB) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Password berhasil diubah!"})
 }
 
-// 2. Fungsi Ganti Username
+
 // 2. Fungsi Ganti Username (Versi Lebih Cepat & Ringkas)
 func (d *DB) UpdateUsername(c *gin.Context) {
 	userID, ada := c.Get("user_id")

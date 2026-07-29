@@ -19,8 +19,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-
-	"github.com/patrickmn/go-cache"
 )
 
 func main() {
@@ -35,16 +33,14 @@ func main() {
 	}
 	defer pool.Close()
 
-	c := cache.New(24*time.Hour, 10*time.Minute)
-
 	auth := &auth.Data{
 		DB:    pool,
-		Cache: c,
+		
 	}
 
 	user := &user.DB{
 		Database: pool,
-		Cache:    c,
+	
 	}
 	err = redis.Connect()
 	if err != nil {
