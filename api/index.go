@@ -1,9 +1,7 @@
 package api
 
 import (
-	"embed"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/http"
 	"time"
@@ -18,9 +16,6 @@ import (
 	"play/redis"
 	"play/user"
 )
-
-
-var distFS embed.FS
 
 var app *gin.Engine
 
@@ -61,39 +56,7 @@ func init() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// --- BACA FOLDER DIST DENGAN EMBED ---
-	subFS, err := fs.Sub(distFS, "dist")
-	if err != nil {
-		log.Println("Gagal membaca embed dist:", err)
-	}
-	
-	// Melayani Static assets dari embed
-	r.StaticFS("/assets", http.FS(mustSubFS(subFS, "assets")))
-
-	r.GET("/favicon.svg", func(c *gin.Context) {
-		data, _ := distFS.ReadFile("dist/favicon.svg")
-		c.Data(http.StatusOK, "image/svg+xml", data)
-	})
-
-	r.GET("/icons.svg", func(c *gin.Context) {
-		data, _ := distFS.ReadFile("dist/icons.svg")
-		c.Data(http.StatusOK, "image/svg+xml", data)
-	})
-
-	// Serving index.html untuk halaman depan & spa fallback
-	serveIndex := func(c *gin.Context) {
-		data, err := distFS.ReadFile("dist/index.html")
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Index HTML not found")
-			return
-		}
-		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
-	}
-
-	r.GET("/", serveIndex)
-	r.NoRoute(serveIndex)
-
-	// --- ALL ENDPOINTS SAMA PERSIS DENGAN MAIN.GO ---
+	// --- ENDPOINT API ---
 	r.POST("/regis", authData.Register)
 	r.POST("/login", authData.Login)
 	r.POST("/tes", func(c *gin.Context) {
@@ -115,12 +78,10 @@ func init() {
 		}, userData.Profile)
 
 		protected.POST("/logout", authData.Logout)
-
 		protected.GET("/user", userData.Profile)
 		protected.PUT("/user/accept/:id", userData.Accept)
 		protected.DELETE("/user/jadwal/:id", userData.Delete)
 		protected.PUT("/user/jadwal/keterangan/:id", userData.UpdateKeterangan)
-
 		protected.PUT("/user/change-password", userData.UpdatePassword)
 		protected.PUT("/user/change-username", userData.UpdateUsername)
 	}
@@ -128,15 +89,6 @@ func init() {
 	app = r
 }
 
-func mustSubFS(efs fs.FS, dir string) fs.FS {
-	sub, err := fs.Sub(efs, dir)
-	if err != nil {
-		panic(err)
-	}
-	return sub
-}
-
-// Handler utama untuk Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
 	app.ServeHTTP(w, r)
 }
