@@ -12,8 +12,8 @@ import (
 
 	// SESUAIKAN DENGAN NAMA MODULE DI go.mod KAMU (misal: "play" atau "GoJadwal")
 	"play/database"
-	"play/internal/auth"
 	"play/middleware"
+	"play/modules/auth"
 	"play/redis"
 	"play/user"
 )
@@ -28,7 +28,7 @@ func init() {
 		log.Printf("gagal konek ke database %v", err)
 	}
 
-	authData := &auth.Data{
+	authData := &modules.Data{
 		DB: pool,
 	}
 
