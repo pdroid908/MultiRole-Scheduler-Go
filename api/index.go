@@ -12,7 +12,7 @@ import (
 
 	"play/database"
 	"play/middleware"
-	"play/modules/auth"
+	modules "play/modules/auth"
 	"play/redis"
 	"play/user"
 )
@@ -57,8 +57,9 @@ func init() {
 	}))
 
 	// --- ENDPOINT API ---
-	r.POST("/regis", authData.Register)
-	r.POST("/login", authData.Login)
+	// api/index.go
+r.POST("/api/regis", authData.Register)
+r.POST("/api/login", authData.Login)
 	r.POST("/tes", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"ok": "ok",
