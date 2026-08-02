@@ -71,10 +71,10 @@ r.POST("/api/login", authData.Login)
 	r.POST("/api/booking/:username", userData.CreateBooking)
 
 	// --- RUTE PROTECTED ---
-	protected := r.Group("/")
+	protected := r.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/api/download", func(c *gin.Context) {
+		protected.GET("/download", func(c *gin.Context) {
 			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 		}, userData.Profile)
 
