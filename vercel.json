@@ -52,10 +52,6 @@
       "dest": "/dist/icons.svg"
     },
     {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
-    },
-    {
       "handle": "filesystem"
     },
     {
