@@ -1,7 +1,9 @@
 package api
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"time"
@@ -11,19 +13,19 @@ import (
 	"github.com/joho/godotenv"
 
 	"play/database"
-	"play/modules/auth"
 	"play/middleware"
+	"play/modules/auth"
 	"play/redis"
 	"play/user"
 )
 
+
+var distFS embed.FS
+
 var app *gin.Engine
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Print("gagal load env tetap jalan")
-	}
+	_ = godotenv.Load()
 
 	pool, err := database.Connect()
 	if err != nil {
@@ -40,7 +42,7 @@ func init() {
 
 	err = redis.Connect()
 	if err != nil {
-		fmt.Print("gagal konek ke Redis")
+		fmt.Println("gagal konek ke Redis")
 	} else {
 		log.Println("Berhasil terhubung ke Redis!")
 	}
@@ -59,18 +61,37 @@ func init() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Serving file static dari folder dist
-	r.Static("/assets", "./dist/assets")
-	r.StaticFile("/favicon.svg", "./dist/favicon.svg")
-	r.StaticFile("/icons.svg", "./dist/icons.svg")
+	// --- BACA FOLDER DIST DENGAN EMBED ---
+	subFS, err := fs.Sub(distFS, "dist")
+	if err != nil {
+		log.Println("Gagal membaca embed dist:", err)
+	}
 	
-	r.GET("/", func(c *gin.Context) {
-		c.File("./dist/index.html")
+	// Melayani Static assets dari embed
+	r.StaticFS("/assets", http.FS(mustSubFS(subFS, "assets")))
+
+	r.GET("/favicon.svg", func(c *gin.Context) {
+		data, _ := distFS.ReadFile("dist/favicon.svg")
+		c.Data(http.StatusOK, "image/svg+xml", data)
 	})
 
-	r.NoRoute(func(c *gin.Context) {
-		c.File("./dist/index.html")
+	r.GET("/icons.svg", func(c *gin.Context) {
+		data, _ := distFS.ReadFile("dist/icons.svg")
+		c.Data(http.StatusOK, "image/svg+xml", data)
 	})
+
+	// Serving index.html untuk halaman depan & spa fallback
+	serveIndex := func(c *gin.Context) {
+		data, err := distFS.ReadFile("dist/index.html")
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Index HTML not found")
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+	}
+
+	r.GET("/", serveIndex)
+	r.NoRoute(serveIndex)
 
 	// --- ALL ENDPOINTS SAMA PERSIS DENGAN MAIN.GO ---
 	r.POST("/regis", authData.Register)
@@ -105,6 +126,14 @@ func init() {
 	}
 
 	app = r
+}
+
+func mustSubFS(efs fs.FS, dir string) fs.FS {
+	sub, err := fs.Sub(efs, dir)
+	if err != nil {
+		panic(err)
+	}
+	return sub
 }
 
 // Handler utama untuk Vercel
