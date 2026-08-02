@@ -58,9 +58,12 @@ func init() {
 
 	// --- ENDPOINT API ---
 	// api/index.go
-r.POST("/api/regis", authData.Register)
-r.POST("/api/login", authData.Login)
-	r.POST("/tes", func(c *gin.Context) {
+authPublic := r.Group("/api/auth")
+	{
+		authPublic.POST("/regis", authData.Register)
+		authPublic.POST("/login", authData.Login)
+	}
+	r.POST("/api/tes", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"ok": "ok",
 		})
@@ -71,7 +74,7 @@ r.POST("/api/login", authData.Login)
 	r.POST("/api/booking/:username", userData.CreateBooking)
 
 	// --- RUTE PROTECTED ---
-	protected := r.Group("/api")
+	protected := r.Group("/api/app")
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/download", func(c *gin.Context) {
