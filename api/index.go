@@ -58,16 +58,17 @@ func init() {
 	}))
 
 	// Serving file static dari folder dist
-	r.Static("/assets", "./dist/assets")
-	r.StaticFile("/favicon.svg", "./dist/favicon.svg")
-	r.StaticFile("/icons.svg", "./dist/icons.svg")
+	// Ganti dari "./dist/..." menjadi "backendGo/dist/..."
+	r.Static("/assets", "backendGo/dist/assets")
+	r.StaticFile("/favicon.svg", "backendGo/dist/favicon.svg")
+	r.StaticFile("/icons.svg", "backendGo/dist/icons.svg")
 	
 	r.GET("/", func(c *gin.Context) {
-		c.File("./dist/index.html")
+		c.File("backendGo/dist/index.html")
 	})
 
 	r.NoRoute(func(c *gin.Context) {
-		c.File("./dist/index.html")
+		c.File("backendGo/dist/index.html")
 	})
 
 	r.POST("/regis", authData.Register)

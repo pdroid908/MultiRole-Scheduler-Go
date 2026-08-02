@@ -2,14 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.go",
-      "use": "@vercel/go"
+      "src": "backendGo/api/index.go",
+      "use": "@vercel/go",
+      "config": {
+        "includeFiles": ["backendGo/dist/**"]
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/index.go"
+      "dest": "backendGo/api/index.go"
     }
   ]
 }
