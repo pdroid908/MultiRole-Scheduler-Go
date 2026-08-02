@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	// SESUAIKAN DENGAN NAMA MODULE DI go.mod KAMU (misal: "play" atau "GoJadwal")
 	"play/database"
 	"play/middleware"
 	"play/modules/auth"
@@ -49,7 +48,7 @@ func init() {
 	r.Use(gin.Logger())
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://goojadwal.pages.dev", "http://localhost:5173", "https://*.vercel.app"},
+		AllowOrigins:     []string{"https://goojadwal.vercel.app", "http://localhost:5173", "https://goojadwal.pages.dev"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "Cache-Control"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -57,20 +56,7 @@ func init() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Serving file static dari folder dist
-	// Ganti dari "./dist/..." menjadi "backendGo/dist/..."
-	r.Static("/assets", "backendGo/dist/assets")
-	r.StaticFile("/favicon.svg", "backendGo/dist/favicon.svg")
-	r.StaticFile("/icons.svg", "backendGo/dist/icons.svg")
-	
-	r.GET("/", func(c *gin.Context) {
-		c.File("backendGo/dist/index.html")
-	})
-
-	r.NoRoute(func(c *gin.Context) {
-		c.File("backendGo/dist/index.html")
-	})
-
+	// Rute Publik (Sama seperti main.go referensi)
 	r.POST("/regis", authData.Register)
 	r.POST("/login", authData.Login)
 	r.POST("/tes", func(c *gin.Context) {
@@ -83,7 +69,7 @@ func init() {
 	r.GET("/api/booking/jadwal/:username", userData.BookingProfile)
 	r.POST("/api/booking/:username", userData.CreateBooking)
 
-	// --- RUTE PROTECTED ---
+	// Rute Protected (Sama seperti main.go referensi)
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
@@ -103,7 +89,6 @@ func init() {
 	app = r
 }
 
-// Handler adalah fungsi utama yang dipanggil oleh Vercel Serverless
 func Handler(w http.ResponseWriter, r *http.Request) {
 	app.ServeHTTP(w, r)
 }

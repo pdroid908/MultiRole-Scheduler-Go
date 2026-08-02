@@ -12,6 +12,26 @@
   ],
   "routes": [
     {
+      "src": "/regis",
+      "dest": "/api/index.go"
+    },
+    {
+      "src": "/login",
+      "dest": "/api/index.go"
+    },
+    {
+      "src": "/logout",
+      "dest": "/api/index.go"
+    },
+    {
+      "src": "/tes",
+      "dest": "/api/index.go"
+    },
+    {
+      "src": "/user/(.*)",
+      "dest": "/api/index.go"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.go"
     },
