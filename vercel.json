@@ -28,6 +28,10 @@
       "dest": "/api/index.go"
     },
     {
+      "src": "/user",
+      "dest": "/api/index.go"
+    },
+    {
       "src": "/user/(.*)",
       "dest": "/api/index.go"
     },
