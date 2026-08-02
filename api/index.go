@@ -11,8 +11,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"play/database"
-	"play/middleware"
 	"play/modules/auth"
+	"play/middleware"
 	"play/redis"
 	"play/user"
 )
@@ -20,7 +20,10 @@ import (
 var app *gin.Engine
 
 func init() {
-	_ = godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Print("gagal load env tetap jalan")
+	}
 
 	pool, err := database.Connect()
 	if err != nil {
@@ -37,7 +40,7 @@ func init() {
 
 	err = redis.Connect()
 	if err != nil {
-		fmt.Println("gagal konek ke Redis")
+		fmt.Print("gagal konek ke Redis")
 	} else {
 		log.Println("Berhasil terhubung ke Redis!")
 	}
@@ -48,7 +51,7 @@ func init() {
 	r.Use(gin.Logger())
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://goojadwal.vercel.app", "http://localhost:5173", "https://goojadwal.pages.dev"},
+		AllowOrigins:     []string{"https://goojadwal.pages.dev", "http://localhost:5173", "https://goojadwal.vercel.app"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "Cache-Control"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -56,7 +59,20 @@ func init() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Rute Publik (Sama seperti main.go referensi)
+	// Serving file static dari folder dist
+	r.Static("/assets", "./dist/assets")
+	r.StaticFile("/favicon.svg", "./dist/favicon.svg")
+	r.StaticFile("/icons.svg", "./dist/icons.svg")
+	
+	r.GET("/", func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
+
+	// --- ALL ENDPOINTS SAMA PERSIS DENGAN MAIN.GO ---
 	r.POST("/regis", authData.Register)
 	r.POST("/login", authData.Login)
 	r.POST("/tes", func(c *gin.Context) {
@@ -69,7 +85,7 @@ func init() {
 	r.GET("/api/booking/jadwal/:username", userData.BookingProfile)
 	r.POST("/api/booking/:username", userData.CreateBooking)
 
-	// Rute Protected (Sama seperti main.go referensi)
+	// --- RUTE PROTECTED ---
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
@@ -78,10 +94,12 @@ func init() {
 		}, userData.Profile)
 
 		protected.POST("/logout", authData.Logout)
+
 		protected.GET("/user", userData.Profile)
 		protected.PUT("/user/accept/:id", userData.Accept)
 		protected.DELETE("/user/jadwal/:id", userData.Delete)
 		protected.PUT("/user/jadwal/keterangan/:id", userData.UpdateKeterangan)
+
 		protected.PUT("/user/change-password", userData.UpdatePassword)
 		protected.PUT("/user/change-username", userData.UpdateUsername)
 	}
@@ -89,6 +107,7 @@ func init() {
 	app = r
 }
 
+// Handler utama untuk Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
 	app.ServeHTTP(w, r)
 }
