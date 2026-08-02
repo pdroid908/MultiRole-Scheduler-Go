@@ -10,38 +10,51 @@
       "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/regis",
-      "destination": "/api/index.go"
+      "src": "/regis",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/login",
-      "destination": "/api/index.go"
+      "src": "/login",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/logout",
-      "destination": "/api/index.go"
+      "src": "/logout",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/tes",
-      "destination": "/api/index.go"
+      "src": "/tes",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/user",
-      "destination": "/api/index.go"
+      "src": "/user",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/user/:path*",
-      "destination": "/api/index.go"
+      "src": "/user/(.*)",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/api/:path*",
-      "destination": "/api/index.go"
+      "src": "/api/(.*)",
+      "dest": "/api/index.go"
     },
     {
-      "source": "/((?!api|user|regis|login|logout|tes|assets|favicon.svg|icons.svg).*)",
-      "destination": "/dist/index.html"
+      "src": "/assets/(.*)",
+      "dest": "/dist/assets/$1"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/dist/favicon.svg"
+    },
+    {
+      "src": "/icons.svg",
+      "dest": "/dist/icons.svg"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/index.html"
     }
+    
   ]
 }
