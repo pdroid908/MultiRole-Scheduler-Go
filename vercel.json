@@ -6,7 +6,7 @@
       "use": "@vercel/go"
     },
     {
-      "src": "dist/(.*)",
+      "src": "dist/**",
       "use": "@vercel/static"
     }
   ],
@@ -18,6 +18,14 @@
     {
       "src": "/assets/(.*)",
       "dest": "/dist/assets/$1"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/dist/favicon.svg"
+    },
+    {
+      "src": "/icons.svg",
+      "dest": "/dist/icons.svg"
     },
     {
       "src": "/(.*)",
