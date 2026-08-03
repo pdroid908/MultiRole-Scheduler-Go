@@ -55,6 +55,7 @@ func (d *DB) Profile(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 		"status":   "success",
 		"id":       ID,
+		"username": username,
 		"data":     data,
 	})
 		return
