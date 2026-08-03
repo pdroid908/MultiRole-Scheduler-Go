@@ -206,6 +206,8 @@ func (d *DB) UpdatePassword(c *gin.Context) {
 		return
 	}
 
+	d.InvalidateUserCache(ID)
+
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Password berhasil diubah!"})
 }
 
@@ -244,6 +246,7 @@ func (d *DB) UpdateUsername(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"err": "Gagal memperbarui username: " + err.Error()})
 		return
 	}
+	d.InvalidateUserCache(ID)
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Username berhasil diperbarui!"})
 }
