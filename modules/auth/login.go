@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"play/redis"
 
-	// "play/redis"
+
+
 
 	"time"
 
@@ -47,16 +47,6 @@ func (d *Data) Login(c *gin.Context) {
 
 	err := bcrypt.CompareHashAndPassword([]byte(passDB), []byte(req.Password))
 	if err != nil {
-		limit := "Login_Limit:" + c.ClientIP()
-		boleh, err := redis.RateLimit(limit)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"err": "redis err"})
-			return
-		}
-		if !boleh {
-			c.JSON(http.StatusTooManyRequests, gin.H{"err": "tunggu 5 menit"})
-			return
-		}
 		c.JSON(http.StatusBadRequest, gin.H{"err": "invalid data"})
 		return
 	}
