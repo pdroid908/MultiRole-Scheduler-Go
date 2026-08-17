@@ -22,18 +22,17 @@ var app *gin.Engine
 func init() {
 	_ = godotenv.Load()
 
-	pool, err:= database.Connect()
-	if err!=nil{
-		log.Fatalf("gagal buat database main %v",err)
+	pool, err := database.Connect()
+	if err != nil {
+		log.Printf("gagal konek ke database %v", err)
 	}
-	
 
 	authData := &modules.Data{
-		DB: pool.Db,
+		DB: pool,
 	}
 
 	userData := &user.DB{
-		Database: pool.Db,
+		Database: pool,
 	}
 
 	err = redis.Connect()
@@ -59,7 +58,7 @@ func init() {
 
 	// --- ENDPOINT API ---
 	// api/index.go
-	authPublic := r.Group("/api/auth")
+authPublic := r.Group("/api/auth")
 	{
 		authPublic.POST("/regis", authData.Register)
 		authPublic.POST("/login", authData.Login)

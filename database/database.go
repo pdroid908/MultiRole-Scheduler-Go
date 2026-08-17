@@ -5,34 +5,33 @@ import (
 	"fmt"
 	"os"
 	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Database struct{
-	Db *pgxpool.Pool
-}
+func Connect() (*pgxpool.Pool, error) {
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		return nil, fmt.Errorf("DB_URL kosong")
+	}
 
-func Connect() (*Database, error) {
-	dbUrl := os.Getenv("DB_URL")
-	if dbUrl == "" {
-		return nil, fmt.Errorf("env db url kosong")
-	}
-	config, err := pgxpool.ParseConfig(dbUrl)
+	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
-		return nil, fmt.Errorf("gagal buat config %v", err)
+		return nil, fmt.Errorf("gagal parse DB_URL: %w", err)
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("gagal buat pool %v", err)
+		return nil, fmt.Errorf("gagal membuat database pool: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		pool.Close()                                     
-		return nil, fmt.Errorf("gagal ping DB: %w", err)
+		pool.Close()
+		return nil, fmt.Errorf("gagal ping database: %w", err)
 	}
-	return &Database{Db: pool}, nil
+
+	return pool, nil
 }
