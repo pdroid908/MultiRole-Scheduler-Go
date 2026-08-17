@@ -26,7 +26,7 @@ func init() {
 	if err!=nil{
 		log.Fatalf("gagal buat database main %v",err)
 	}
-	defer pool.Db.Close()
+	
 
 	authData := &modules.Data{
 		DB: pool.Db,
