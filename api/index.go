@@ -24,15 +24,15 @@ func init() {
 
 	pool, err := database.Connect()
 	if err != nil {
-		log.Printf("gagal konek ke database %v", err)
+		log.Fatalf("gagal konek ke database %v", err)
 	}
 
 	authData := &modules.Data{
-		DB: pool,
+		DB: pool.Db,
 	}
 
 	userData := &user.DB{
-		Database: pool,
+		Database: pool.Db,
 	}
 
 	err = redis.Connect()
@@ -58,7 +58,7 @@ func init() {
 
 	// --- ENDPOINT API ---
 	// api/index.go
-authPublic := r.Group("/api/auth")
+	authPublic := r.Group("/api/auth")
 	{
 		authPublic.POST("/regis", authData.Register)
 		authPublic.POST("/login", authData.Login)

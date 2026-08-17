@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"os"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Connect() (*pgxpool.Pool, error) {
+type Database struct{
+	Db *pgxpool.Pool
+}
+
+func Connect() (*Database, error) {
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		return nil, fmt.Errorf("env db url kosong")
 	}
-
 	config, err := pgxpool.ParseConfig(dbUrl)
 	if err != nil {
 		return nil, fmt.Errorf("gagal buat config %v", err)
@@ -29,8 +31,8 @@ func Connect() (*pgxpool.Pool, error) {
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		pool.Close()                                     // Perbaikan: Amankan/bersihkan pool jika ping gagal
-		return nil, fmt.Errorf("gagal ping DB: %w", err) // Perbaikan: Sertakan error asli
+		pool.Close()                                     
+		return nil, fmt.Errorf("gagal ping DB: %w", err)
 	}
-	return pool, nil
+	return &Database{Db: pool}, nil
 }
