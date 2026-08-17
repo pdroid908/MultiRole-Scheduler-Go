@@ -51,6 +51,13 @@ func (d *DB) Profile(c *gin.Context) {
 	var a = "admin_profile:"+ ID
 	var username string
 
+	cari := `select username from pengguna where id=$1`
+	err := d.Database.QueryRow(ctx, cari, ID).Scan(&username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"er": "server gagal ambil nama"})
+		return
+	}
+
 	if data,err:= redis.Get(a);err==nil{
 		c.JSON(http.StatusOK, gin.H{
 		"status":   "success",
@@ -61,12 +68,7 @@ func (d *DB) Profile(c *gin.Context) {
 		return
 	}
 	
-	cari := `select username from pengguna where id=$1`
-	err := d.Database.QueryRow(ctx, cari, ID).Scan(&username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"er": "server gagal ambil nama"})
-		return
-	}
+	
 
 	query := `
 		SELECT 
